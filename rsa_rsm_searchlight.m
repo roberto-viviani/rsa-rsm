@@ -237,7 +237,6 @@ function varargout = rsa_rsm_searchlight(args)
 
     str.Args = args;
     str.diagn = @meancorr_;
-    str.permtest = perm_test_factory_(str);  %TODO: remove this
     str.getmap = @(mapname) cov_(str, mapname);
     str.disp = @() print_names_(str, maps, mapcovs);
     str.boxplot = @(varargin) boxplot_(str, varargin);
@@ -718,69 +717,6 @@ function model = get_modelname_(args)
                 codes{i_} = [upper(codes{i_}(1)), codes{i_}(2:end)];
             end
         end
-    end
-end
-
-%%%function objects%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function f = perm_test_factory_(sstr)
-    function str = ptest_(idx, siz, args)
-        str = [];
-        if nargin < 3, args = struct(); end
-        if nargin < 2, siz = 8000; end
-        if nargin < 1, disp('At least one arg required, map number'); 
-            return; end
-        if numel(idx) ~= 1
-            disp('First argument: map number'); return; end
-        if idx > length(sstr.MapNames) || idx < 1
-            disp('Invalid map index'); return; end
-
-        fnames = {};
-        dirs = cellstr(sstr.Args.Directories);
-        if ~isempty(sstr.Args.OutputDir)
-            pth = get_commonpath_(sstr.Args.Directories);
-            dirs = strrep(dirs, pth, sstr.Args.OutputDir);
-        end
-        for i = 1 : size(sstr.Args.Directories, 1)
-            fnames{i} = fullfile(dirs{i}, ...
-                [sstr.ModelName, '_', sstr.MapNames{idx}, '.nii']);
-        end
-        a.Files = char(fnames);
-        a = setfld_(a, args, 'SeedGenerator', 61543);
-        a.TestType = 'o';
-        if ~isempty(sstr.Args.MaskFile)
-            a = setfld_(a, args, 'MaskFile', sstr.Args.MaskFile);
-        else
-            a = setfld_(a, args, 'MaskFile', ...
-                char({'W:\_SPM_\masks\grey_03_noBG.nii', ...                 
-                'W:\_SPM_\masks\grayorwhite_brainstemcerebell.img'}));
-        end
-        a = setfld_(a, args, 'GlobalCovariate', 0);
-        a = setfld_(a, args, 'GlobalNormalization', 0);
-        a = setfld_(a, args, 'NuisanceVariables', []);
-        a = setfld_(a, args, 'CentreNuisanceVariables', 0);
-        a.ResampleSize = siz;
-        a = setfld_(a, args, 'ClusterTest', 0.001);
-        a = setfld_(a, args, 'SaveAllClusters', (a.ResampleSize >= 8000));
-        a = setfld_(a, args, 'FWHM', [8 8 8]);
-        a = setfld_(a, args, 'RankData', 0);
-        if isfield(sstr.Args, 'OutputDir') && ~isempty(sstr.Args.OutputDir)
-            outpth = sstr.Args.OutputDir;
-        else
-            outpth = get_commonpath_(sstr.Args.Directories);
-        end
-        outpth = regexprep(outpth, '3_first_levels', '4_second_levels');
-        outpth = fullfile(outpth, [sstr.ModelName, '_', sstr.MapNames{idx}]);
-        a.OutputDir = fullfile(outpth, sprintf('perm_%0.3f', a.ClusterTest));
-        str = exp_onesmpl_t(a);
-    end
-    f = @ptest_;
-end
-
-function str = setfld_(str, srcstr, fname, defval)
-    if isfield(srcstr, fname)
-        str.(fname) = srcstr.(fname);
-    else
-        str.(fname) = defval;
     end
 end
 
