@@ -1,3 +1,5 @@
+# Representation similarity analysis: partial correlation approach
+
 This is an SPM add-on package implements the computation of representational similarity analyses for functional imaging data in a searchlight sampling scheme, using a partial correlation approach to adjust for sources of bias that may be present due to the model design or due to other sources. It also provides diagnostics for the existence of bias in these analyses, with or without partial correlation. This package makes the methods described in the following report publicly available:
 Viviani, R. (2021). Overcoming bias in representational similarity analysis. arXiv preprint arXiv:2102.08931.
 
